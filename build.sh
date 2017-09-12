@@ -1,1 +1,1 @@
-docker build -t dicebox.classificationservice .
+docker build -t dicebox.sensorybatchprocessor .
