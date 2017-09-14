@@ -1,4 +1,4 @@
-from lib import dicebox_config as config
+import lib.docker_config as config
 from lib import filesystem_connecter
 import logging
 import json
