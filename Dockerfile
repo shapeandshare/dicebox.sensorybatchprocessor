@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY ./app /app
 COPY ./dicebox/lib /app/lib
+COPY ./dicebox/dicebox.config /app
 
 RUN pip install -r requirements.txt \
     && useradd -M -U -u 1000 batchprocessor \
