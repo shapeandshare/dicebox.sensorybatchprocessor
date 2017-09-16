@@ -2,20 +2,32 @@ import lib.docker_config as config
 from lib import filesystem_connecter
 import logging
 import json
-import uuid
 import pika
-import time
 import numpy
+import os
+import errno
+
+
+# https://stackoverflow.com/questions/273192/how-can-i-create-a-directory-if-it-does-not-exist
+def make_sure_path_exists(path):
+    try:
+        if os.path.exists(path) is False:
+            os.makedirs(path)
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
 
 
 # Setup logging.
+make_sure_path_exists(config.LOGS_DIR)
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p',
-    level=logging.INFO,
+    level=logging.DEBUG,
     filemode='w',
-    filename="%s/sensory_service_batch_processor.log" % config.LOGS_DIR
+    filename="%s/%s.sensory_service_batch_processor.log" % (config.LOGS_DIR, os.uname()[1])
 )
+
 
 logging.debug("creating a new fsc..")
 fsc = filesystem_connecter.FileSystemConnector(config.DATA_DIRECTORY)
