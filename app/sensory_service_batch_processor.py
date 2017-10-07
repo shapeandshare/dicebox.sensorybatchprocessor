@@ -57,7 +57,7 @@ def process_batch_order(batch_order):
     # iterate over the result
     outbound_connection = pika.BlockingConnection(parameters=parameters)
     uuid_channel = outbound_connection.channel()
-    arguments = {'x-expires': 3600 * 1000}  # 3600 seconds = 1 hour
+    arguments = {'x-expires': 1800 * 1000}  # 1800 seconds = 30 minutes
     uuid_channel.queue_declare(queue=sensory_batch_request_id, durable=False, auto_delete=True, arguments=arguments)
 
     uuid_channel.queue_bind(sensory_batch_request_id, config.SENSORY_SERVICE_RABBITMQ_EXCHANGE, routing_key=sensory_batch_request_id, arguments=None)
