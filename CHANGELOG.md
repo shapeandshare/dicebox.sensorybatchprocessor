@@ -9,3 +9,5 @@ Change Log
 * Updated the dicebox.core submodule to the latest
 * Added the Change Log!
 * Updated the requirements.txt for the project.
+* Code cleanup and comments added.
+
