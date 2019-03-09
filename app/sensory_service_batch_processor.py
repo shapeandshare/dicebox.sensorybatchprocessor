@@ -1,3 +1,17 @@
+#!flask/bin/python
+###############################################################################
+# Sensory Batch Processor
+#   Handles requests for batch sensory data.  This service acts as a back-
+# ground processor, and interacts with the RabbitMQ message system and the local
+# filesystem only.
+#
+# Copyright (c) 2017-2019 Joshua Burt
+###############################################################################
+
+
+###############################################################################
+# Dependencies
+###############################################################################
 import lib.docker_config as config
 from lib import filesystem_connecter
 import logging
@@ -7,8 +21,10 @@ import numpy
 import os
 import errno
 
-
+###############################################################################
+# Allows for easy directory structure creation
 # https://stackoverflow.com/questions/273192/how-can-i-create-a-directory-if-it-does-not-exist
+###############################################################################
 def make_sure_path_exists(path):
     try:
         if os.path.exists(path) is False:
@@ -18,7 +34,9 @@ def make_sure_path_exists(path):
             raise
 
 
+###############################################################################
 # Setup logging.
+###############################################################################
 make_sure_path_exists(config.LOGS_DIR)
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -29,9 +47,16 @@ logging.basicConfig(
 )
 
 
+###############################################################################
+# Setup logging
+###############################################################################
 logging.debug("creating a new fsc..")
 fsc = filesystem_connecter.FileSystemConnector(config.DATA_DIRECTORY)
 
+
+###############################################################################
+# Message System Configuration
+###############################################################################
 url = config.SENSORY_SERVICE_RABBITMQ_URL
 parameters = pika.URLParameters(url)
 connection = pika.BlockingConnection(parameters=parameters)
@@ -40,8 +65,12 @@ channel = connection.channel()
 
 # channel.queue_declare(queue='task_queue', durable=True)
 channel.queue_declare(queue=config.SENSORY_SERVICE_RABBITMQ_BATCH_REQUEST_TASK_QUEUE, durable=True)
+channel.basic_qos(prefetch_count=1)
 
 
+###############################################################################
+# Batch Order Processing Logic
+###############################################################################
 def process_batch_order(batch_order):
     order_metadata = json.loads(batch_order)
     logging.debug(order_metadata['sensory_batch_request_id'])
@@ -72,16 +101,22 @@ def process_batch_order(batch_order):
 
 
 
-print(' [*] Waiting for messages. To exit press CTRL+C')
 
+
+###############################################################################
+# Our callback when message consumption is ready to occur
+###############################################################################
 def callback(ch, method, properties, body):
     logging.info(" [x] Received %r" % body)
     process_batch_order(body)
     logging.info(" [x] Done")
     ch.basic_ack(delivery_tag = method.delivery_tag)
 
-channel.basic_qos(prefetch_count=1)
+
+###############################################################################
+# Main wait loop begins now ..
+###############################################################################
+print(' [*] Waiting for messages. To exit press CTRL+C')
 channel.basic_consume(callback,
                       queue=config.SENSORY_SERVICE_RABBITMQ_BATCH_REQUEST_TASK_QUEUE)
-
 channel.start_consuming()
