@@ -106,3 +106,4 @@ ENV/
 venv/
 app/lib
 app/dicebox.config
+/app/datasets
