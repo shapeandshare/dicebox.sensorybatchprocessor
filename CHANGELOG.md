@@ -2,7 +2,7 @@ Change Log
 ==========
 
 
-03.09/2019
+03.09.2019
 ----------
 * Updated Copyright dates
 * Added gitignore exclusion for the virtual environment, and others.
@@ -11,3 +11,6 @@ Change Log
 * Updated the requirements.txt for the project.
 * Code cleanup and comments added.
 
+03.21.2019
+----------
+* Updated core libraries.
