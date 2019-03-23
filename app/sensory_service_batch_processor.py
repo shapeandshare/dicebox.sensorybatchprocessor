@@ -48,7 +48,7 @@ logging.basicConfig(
 
 
 ###############################################################################
-# Setup logging
+# Create the Filesystem Connector
 ###############################################################################
 logging.debug("creating a new fsc..")
 fsc = filesystem_connecter.FileSystemConnector(config.DATA_DIRECTORY)
