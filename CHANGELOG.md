@@ -23,3 +23,4 @@ Change Log
 ----------
 * Updated core libraries.
 * Refactored to support latest library changes
+* Updated docker build to account for new directory structure.
