@@ -12,14 +12,18 @@
 ###############################################################################
 # Dependencies
 ###############################################################################
-import lib.docker_config as config
-from lib import filesystem_connecter
 import logging
 import json
 import pika
 import numpy
 import os
 import errno
+import dicebox.docker_config
+import dicebox.filesystem_connecter
+
+# Config
+config_file = './dicebox.config'
+CONFIG = dicebox.docker_config.DockerConfig(config_file)
 
 ###############################################################################
 # Allows for easy directory structure creation
@@ -37,13 +41,13 @@ def make_sure_path_exists(path):
 ###############################################################################
 # Setup logging.
 ###############################################################################
-make_sure_path_exists(config.LOGS_DIR)
+make_sure_path_exists(CONFIG.LOGS_DIR)
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p',
     level=logging.DEBUG,
     filemode='w',
-    filename="%s/%s.sensory_service_batch_processor.log" % (config.LOGS_DIR, os.uname()[1])
+    filename="%s/sensory_service_batch_processor.%s.log" % (CONFIG.LOGS_DIR, os.uname()[1])
 )
 
 
@@ -51,20 +55,20 @@ logging.basicConfig(
 # Create the Filesystem Connector
 ###############################################################################
 logging.debug("creating a new fsc..")
-fsc = filesystem_connecter.FileSystemConnector(config.DATA_DIRECTORY)
+fsc = dicebox.filesystem_connecter.FileSystemConnector(data_directory=CONFIG.DATA_DIRECTORY, config_file=config_file)
 
 
 ###############################################################################
 # Message System Configuration
 ###############################################################################
-url = config.SENSORY_SERVICE_RABBITMQ_URL
+url = CONFIG.SENSORY_SERVICE_RABBITMQ_URL
 parameters = pika.URLParameters(url)
 connection = pika.BlockingConnection(parameters=parameters)
 
 channel = connection.channel()
 
 # channel.queue_declare(queue='task_queue', durable=True)
-channel.queue_declare(queue=config.SENSORY_SERVICE_RABBITMQ_BATCH_REQUEST_TASK_QUEUE, durable=True)
+channel.queue_declare(queue=CONFIG.SENSORY_SERVICE_RABBITMQ_BATCH_REQUEST_TASK_QUEUE, durable=True)
 channel.basic_qos(prefetch_count=1)
 
 
@@ -89,17 +93,15 @@ def process_batch_order(batch_order):
     arguments = {'x-expires': 1800 * 1000}  # 1800 seconds = 30 minutes
     uuid_channel.queue_declare(queue=sensory_batch_request_id, durable=False, auto_delete=True, arguments=arguments)
 
-    uuid_channel.queue_bind(sensory_batch_request_id, config.SENSORY_SERVICE_RABBITMQ_EXCHANGE, routing_key=sensory_batch_request_id, arguments=None)
+    uuid_channel.queue_bind(sensory_batch_request_id, CONFIG.SENSORY_SERVICE_RABBITMQ_EXCHANGE, routing_key=sensory_batch_request_id, arguments=None)
 
     for index in range(0, len(image_labels)):
         outbound_message = json.dumps({'label': numpy.array(image_labels[index]).tolist(), 'data': numpy.array(image_data[index]).tolist()})
-        uuid_channel.basic_publish(exchange=config.SENSORY_SERVICE_RABBITMQ_EXCHANGE,
+        uuid_channel.basic_publish(exchange=CONFIG.SENSORY_SERVICE_RABBITMQ_EXCHANGE,
                                    routing_key=sensory_batch_request_id,
                                    body=outbound_message
                                    )
     outbound_connection.close()
-
-
 
 
 
@@ -118,5 +120,5 @@ def callback(ch, method, properties, body):
 ###############################################################################
 print(' [*] Waiting for messages. To exit press CTRL+C')
 channel.basic_consume(callback,
-                      queue=config.SENSORY_SERVICE_RABBITMQ_BATCH_REQUEST_TASK_QUEUE)
+                      queue=CONFIG.SENSORY_SERVICE_RABBITMQ_BATCH_REQUEST_TASK_QUEUE)
 channel.start_consuming()
