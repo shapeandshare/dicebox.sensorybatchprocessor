@@ -3,7 +3,7 @@ FROM python:2.7
 WORKDIR /app
 
 COPY ./app /app
-COPY ./dicebox/lib /app/lib
+COPY ./dicebox/dicebox /app/dicebox
 COPY ./dicebox/dicebox.config /app
 
 RUN pip install -r requirements.txt \
