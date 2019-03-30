@@ -18,3 +18,8 @@ Change Log
 03.22.2019
 ----------
 * Updated core libraries.
+
+03.30.2019
+----------
+* Updated core libraries.
+* Refactored to support latest library changes
