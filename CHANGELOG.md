@@ -24,3 +24,7 @@ Change Log
 * Updated core libraries.
 * Refactored to support latest library changes
 * Updated docker build to account for new directory structure.
+
+03.31.2019
+----------
+* Fixed bug which prevent luck from working correctly.
