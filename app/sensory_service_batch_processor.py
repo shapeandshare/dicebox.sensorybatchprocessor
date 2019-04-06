@@ -18,12 +18,13 @@ import pika
 import numpy
 import os
 import errno
-import dicebox.docker_config
-import dicebox.filesystem_connecter
+from dicebox.config.dicebox_config import DiceboxConfig
+from dicebox.connectors.filesystem_connecter import FileSystemConnector
 
 # Config
 config_file = './dicebox.config'
-CONFIG = dicebox.docker_config.DockerConfig(config_file)
+CONFIG = DiceboxConfig(config_file)
+
 
 ###############################################################################
 # Allows for easy directory structure creation
@@ -55,7 +56,7 @@ logging.basicConfig(
 # Create the Filesystem Connector
 ###############################################################################
 logging.debug("creating a new fsc..")
-fsc = dicebox.filesystem_connecter.FileSystemConnector(data_directory=CONFIG.DATA_DIRECTORY, config_file=config_file)
+fsc = FileSystemConnector(data_directory=CONFIG.DATA_DIRECTORY, config_file=config_file)
 
 
 ###############################################################################
@@ -102,7 +103,6 @@ def process_batch_order(batch_order):
                                    body=outbound_message
                                    )
     outbound_connection.close()
-
 
 
 ###############################################################################
