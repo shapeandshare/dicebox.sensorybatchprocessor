@@ -28,3 +28,7 @@ Change Log
 03.31.2019
 ----------
 * Fixed bug which prevent luck from working correctly.
+
+04.06.2019
+----------
+* Refactored after core library namespace refactoring
