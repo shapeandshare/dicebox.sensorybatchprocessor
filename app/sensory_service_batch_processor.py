@@ -7,7 +7,7 @@
 #
 # Copyright (c) 2017-2019 Joshua Burt
 ###############################################################################
-
+VERSION = '0.1.0'
 
 ###############################################################################
 # Dependencies
@@ -17,32 +17,20 @@ import json
 import pika
 import numpy
 import os
-import errno
+import dicebox.helpers as helpers
 from dicebox.config.dicebox_config import DiceboxConfig
 from dicebox.connectors.filesystem_connecter import FileSystemConnector
 
 # Config
 config_file = './dicebox.config'
-CONFIG = DiceboxConfig(config_file)
-
-
-###############################################################################
-# Allows for easy directory structure creation
-# https://stackoverflow.com/questions/273192/how-can-i-create-a-directory-if-it-does-not-exist
-###############################################################################
-def make_sure_path_exists(path):
-    try:
-        if os.path.exists(path) is False:
-            os.makedirs(path)
-    except OSError as exception:
-        if exception.errno != errno.EEXIST:
-            raise
+lonestar_model_file='./dicebox.lonestar.json'
+CONFIG = DiceboxConfig(config_file, lonestar_model_file)
 
 
 ###############################################################################
 # Setup logging.
 ###############################################################################
-make_sure_path_exists(CONFIG.LOGS_DIR)
+helpers.make_sure_path_exists(CONFIG.LOGS_DIR)
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p',
@@ -56,7 +44,9 @@ logging.basicConfig(
 # Create the Filesystem Connector
 ###############################################################################
 logging.debug("creating a new fsc..")
-fsc = FileSystemConnector(data_directory=CONFIG.DATA_DIRECTORY, config_file=config_file)
+fsc = FileSystemConnector(data_directory=CONFIG.DATA_DIRECTORY,
+                          config_file=config_file,
+                          lonestar_model_file=lonestar_model_file)
 
 
 ###############################################################################
@@ -118,6 +108,8 @@ def callback(ch, method, properties, body):
 ###############################################################################
 # Main wait loop begins now ..
 ###############################################################################
+print("Application Version: (%s), Dicebox API Version: (%s)" % (VERSION, CONFIG.API_VERSION))
+logging.info("Application Version: (%s), Dicebox API Version: (%s)",VERSION, CONFIG.API_VERSION)
 print(' [*] Waiting for messages. To exit press CTRL+C')
 channel.basic_consume(callback,
                       queue=CONFIG.SENSORY_SERVICE_RABBITMQ_BATCH_REQUEST_TASK_QUEUE)
